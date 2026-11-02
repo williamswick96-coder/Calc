@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculus Practice Module - Product & Quotient Rules</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- MathJax for LaTeX Rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            500: '#2563eb',
+                            600: '#1d4ed8',
+                            700: '#1e40af',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        #laser-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+
+    <!-- Laser Render Canvas -->
+    <canvas id="laser-canvas"></canvas>
+
+    <!-- Header Navigation -->
+    <header class="bg-white/95 border-b border-slate-200 sticky top-0 z-30 backdrop-blur-md shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 text-white p-2.5 rounded-xl font-bold text-lg shadow-md shadow-blue-600/20">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-extrabold text-slate-900 leading-tight">Calculus I Practice Module</h1>
+                    <span class="text-xs text-blue-600 font-semibold">Product & Quotient Rules (#41–#55)</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <!-- Timer Display -->
+                <div class="bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-inner">
+                    <i class="fa-solid fa-stopwatch text-blue-600"></i> Time: <span id="timer-display" class="font-mono text-blue-600">00:00</span>
+                </div>
+                <!-- Score Counter Badge -->
+                <div class="bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-inner">
+                    <i class="fa-solid fa-trophy text-amber-500"></i> Score: <span id="header-score" class="text-blue-600 font-mono">0 / 10</span>
+                </div>
+                <button onclick="triggerLaserShow()" class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition-all shadow-sm">
+                    <i class="fa-solid fa-bolt-lightning text-yellow-400"></i> Test Lasers
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+        <!-- Module Header Banner with Name Input -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <span class="inline-block px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-extrabold mb-2 border border-blue-200">
+                        3.2 Calculus Practice • Dr. Swick
+                    </span>
+                    <h2 class="text-2xl font-extrabold text-slate-900">Product & Quotient Rules Module</h2>
+                    <p class="text-xs sm:text-sm text-slate-600 mt-1">Submit each problem individually. You have <strong class="text-blue-600">2 attempts per problem</strong> before step-by-step solutions are unlocked.</p>
+                </div>
+                <div class="text-center sm:text-right bg-slate-50 p-4 rounded-xl border border-slate-200 w-full sm:w-auto">
+                    <span class="text-xs text-slate-500 block font-semibold mb-1">Overall Progress</span>
+                    <div class="w-full sm:w-36 bg-slate-200 h-3 rounded-full overflow-hidden border border-slate-300">
+                        <div id="progress-bar" class="bg-blue-600 h-full w-0 transition-all duration-500"></div>
+                    </div>
+                    <span id="progress-text" class="text-xs text-blue-700 font-mono font-bold mt-1 block">0% Completed</span>
+                </div>
+            </div>
+
+            <!-- Student Name Input Fields -->
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row gap-3">
+                <div class="flex-1">
+                    <label for="student-first-name" class="block text-xs font-bold text-slate-600 mb-1">First Name <span class="text-rose-500">*</span></label>
+                    <input id="student-first-name" type="text" placeholder="e.g. Jane" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-blue-600 transition-all font-medium">
+                </div>
+                <div class="flex-1">
+                    <label for="student-last-name" class="block text-xs font-bold text-slate-600 mb-1">Last Name <span class="text-rose-500">*</span></label>
+                    <input id="student-last-name" type="text" placeholder="e.g. Smith" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-blue-600 transition-all font-medium">
+                </div>
+            </div>
+        </div>
+
+        <!-- Problem Cards Container -->
+        <div id="problems-container" class="space-y-6">
+            <!-- Dynamically populated via JS -->
+        </div>
+
+        <!-- Final Submission Button -->
+        <div class="py-4 flex justify-center">
+            <button onclick="checkCompletionAndModal()" class="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-2xl text-base shadow-lg shadow-blue-600/25 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3">
+                <i class="fa-solid fa-paper-plane"></i> Submit Completed Module & View Grade Token
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Completion Modal Pop-up -->
+    <div id="completion-modal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-8 border border-slate-200 text-center relative space-y-5 transform transition-all">
+            
+            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mx-auto shadow-sm border border-blue-100">
+                <i class="fa-solid fa-award"></i>
+            </div>
+
+            <div>
+                <h3 class="text-2xl font-black text-slate-900">Module Completed! 🎉</h3>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1">Here is your official verification token for Dr. Swick's gradebook.</p>
+            </div>
+
+            <!-- Grade Summary & Token Display Box -->
+            <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 text-left space-y-3">
+                <div class="flex justify-between items-center text-xs text-slate-600 font-semibold border-b border-slate-200 pb-2">
+                    <span>Student: <strong id="modal-student-name" class="text-slate-900 font-bold">---</strong></span>
+                    <span>Score: <strong id="modal-final-score" class="text-blue-600 font-bold font-mono text-sm">0/10</strong></span>
+                </div>
+                <div class="flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Time Elapsed: <strong id="modal-time-elapsed" class="text-slate-700 font-bold">00:00</strong></span>
+                    <span id="modal-date">2026-11-02</span>
+                </div>
+
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Official Student Grade Token</label>
+                    <div class="relative flex items-center">
+                        <textarea id="grade-token-input" readonly rows="3" class="w-full bg-white font-mono text-xs text-blue-700 font-bold border border-slate-300 rounded-xl px-3 py-2.5 pr-10 outline-none select-all resize-none"></textarea>
+                        <button onclick="copyToken()" class="absolute right-3 top-3 text-slate-400 hover:text-blue-600 text-sm transition-colors" title="Copy Token">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 leading-relaxed space-y-1">
+                    <span class="font-bold flex items-center gap-1.5 text-amber-900"><i class="fa-solid fa-circle-info"></i> Submission Instructions for Dr. Swick:</span>
+                    <ol class="list-decimal list-inside space-y-0.5 text-[11.5px] text-amber-900/90">
+                        <li>Click the <strong>Copy Token</strong> button below to copy your complete token.</li>
+                        <li>Open <strong>Google Classroom</strong> and navigate to Dr. Swick's assignment.</li>
+                        <li>Paste your token into the <strong>Private Comment</strong> box and click Turn In.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                <button onclick="copyToken()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+                    <i class="fa-regular fa-copy"></i> Copy Token
+                </button>
+                <button onclick="closeModal()" class="py-3 px-6 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition-all">
+                    Close
+                </button>
+            </div>
+
+            <span id="copy-status" class="text-xs text-emerald-600 font-bold hidden block">Token successfully copied to clipboard!</span>
+        </div>
+    </div>
+
+    <!-- Interactive Script Logic -->
+    <script>
+        // Timer Logic
+        let secondsElapsed = 0;
+        let timerInterval = null;
+
+        window.addEventListener('load', () => {
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+                const secs = String(secondsElapsed % 60).padStart(2, '0');
+                document.getElementById('timer-display').textContent = `${mins}:${secs}`;
+            }, 1000);
+        });
+
+        // 10 Calculus Questions Data Array
+        const questionsData = [
+            {
+                id: 1,
+                num: "#41",
+                prompt: "If \\(f(x) = \\frac{x^2}{1+x}\\), find \\(f''(1)\\).",
+                placeholder: "e.g., 1/8 or 0.125",
+                accepted: ["1/4", "0.25"],
+                hint: "Apply the Quotient Rule to find f'(x), simplify the numerator completely, then differentiate again using the Quotient Rule to find f''(x).",
+                solution: "First derivative via Quotient Rule: \\(f'(x) = \\frac{(1+x)(2x) - x^2(1)}{(1+x)^2} = \\frac{x^2+2x}{(1+x)^2}\\). <br>Second derivative: \\(f''(x) = \\frac{(1+x)^2(2x+2) - (x^2+2x) \\cdot 2(1+x)}{(1+x)^4} = \\frac{2}{(1+x)^3}\\). <br>Evaluating at \\(x=1\\): \\(f''(1) = \\frac{2}{(1+1)^3} = \\frac{2}{8} = \\frac{1}{4}\\)."
+            },
+            {
+                id: 2,
+                num: "#43",
+                prompt: "Suppose that \\(f(5)=1\\), \\(f'(5)=6\\), \\(g(5)=-3\\), and \\(g'(5)=2\\). Find \\((fg)'(5)\\).",
+                placeholder: "Enter integer...",
+                accepted: ["-16"],
+                hint: "Use the Product Rule formula: (fg)'(x) = f(x)g'(x) + g(x)f'(x). Plug in the values given for x = 5.",
+                solution: "By Product Rule: \\((fg)'(5) = f(5)g'(5) + g(5)f'(5)\\). <br>Substitute given values: \\((1)(2) + (-3)(6) = 2 - 18 = -16\\)."
+            },
+            {
+                id: 3,
+                num: "#45",
+                prompt: "If \\(f(x) = e^x g(x)\\), where \\(g(0)=2\\) and \\(g'(0)=5\\), find \\(f'(0)\\).",
+                placeholder: "Enter integer...",
+                accepted: ["7"],
+                hint: "Differentiate using the Product Rule on e^x * g(x). Remember that d/dx[e^x] = e^x and e^0 = 1.",
+                solution: "By Product Rule: \\(f'(x) = e^x g(x) + e^x g'(x) = e^x [g(x) + g'(x)]\\). <br>Evaluating at \\(x=0\\): \\(f'(0) = e^0 [g(0) + g'(0)] = 1 \\cdot [2 + 5] = 7\\)."
+            },
+            {
+                id: 4,
+                num: "#47",
+                prompt: "If \\(g(x) = x f(x)\\), where \\(f(3)=4\\) and \\(f'(3)=-2\\), find an equation of the tangent line to the graph of \\(g\\) at \\(x=3\\).",
+                placeholder: "e.g., y = 5x + 8",
+                accepted: ["y=-2x+18", "y = -2x + 18", "-2x+18", "-2*x+18"],
+                hint: "Find the point (3, g(3)) first. Then use the Product Rule to find the slope g'(3). Write the line using point-slope form.",
+                solution: "Point: \\(g(3) = 3f(3) = 3(4) = 12\\). <br>Slope: \\(g'(x) = f(x) + x f'(x) \\implies g'(3) = f(3) + 3f'(3) = 4 + 3(-2) = -2\\). <br>Tangent line equation: \\(y - 12 = -2(x - 3) \\implies y = -2x + 18\\)."
+            },
+            {
+                id: 5,
+                num: "#48",
+                prompt: "If \\(f(2) = 10\\) and \\(f'(x) = x^2 f(x)\\) for all \\(x\\), find \\(f''(2)\\).",
+                placeholder: "Enter integer...",
+                accepted: ["200"],
+                hint: "Differentiate f'(x) = x^2 f(x) using the Product Rule. First compute f'(2), then evaluate f''(2).",
+                solution: "Differentiate \\(f'(x) = x^2 f(x)\\) using Product Rule: \\(f''(x) = 2x f(x) + x^2 f'(x)\\). <br>Calculate \\(f'(2) = 2^2 f(2) = 4(10) = 40\\). <br>Substitute into \\(f''(2)\\): \\(2(2)(10) + 2^2(40) = 40 + 160 = 200\\)."
+            },
+            {
+                id: 6,
+                num: "#49",
+                prompt: "Using the textbook function graphs for \\(f\\) and \\(g\\), let \\(u(x)=f(x)g(x)\\). Find \\(u'(1)\\).",
+                placeholder: "Enter integer...",
+                accepted: ["0"],
+                hint: "Read f(1), g(1), f'(1) [slope of f], and g'(1) [slope of g] from the textbook grid at x = 1, then apply the Product Rule.",
+                solution: "From graph grid at \\(x=1\\): \\(f(1)=2\\), \\(f'(1)=2\\), \\(g(1)=1\\), \\(g'(1)=-1\\). <br>By Product Rule: \\(u'(1) = f(1)g'(1) + g(1)f'(1) = (2)(-1) + (1)(2) = -2 + 2 = 0\\)."
+            },
+            {
+                id: 7,
+                num: "#51",
+                prompt: "If \\(y = \\frac{x}{g(x)}\\), find an expression for \\(y'\\).",
+                placeholder: "e.g., (xg(x)-x^2g'(x))/(g(x))^3",
+                accepted: ["(g(x)-xg'(x))/(g(x))^2", "(g(x)-x*g'(x))/(g(x))^2", "(g(x)-x g'(x))/[g(x)]^2", "(g(x)-xg'(x))/g(x)^2"],
+                hint: "Apply the Quotient Rule formula [Low d(High) - High d(Low)] / Low^2 where High = x and Low = g(x).",
+                solution: "Applying the Quotient Rule to \\(y = \\frac{x}{g(x)}\\): <br>\\(y' = \\frac{g(x) \\cdot \\frac{d}{dx}(x) - x \\cdot \\frac{d}{dx}[g(x)]}{[g(x)]^2} = \\frac{g(x) - x g'(x)}{[g(x)]^2}\\)."
+            },
+            {
+                id: 8,
+                num: "#53",
+                prompt: "How many tangent lines to the curve \\(y = \\frac{x}{x+1}\\) pass through the point \\((1, 2)\\)?",
+                placeholder: "Enter integer count...",
+                accepted: ["2", "two"],
+                hint: "Write the equation of the tangent line at x = a. Plug in (1, 2) and solve the resulting quadratic equation in 'a' for real roots.",
+                solution: "Derivative \\(y' = \\frac{1}{(x+1)^2}\\). Tangent line at \\(x=a\\) has equation \\(y - \\frac{a}{a+1} = \\frac{1}{(a+1)^2}(x - a)\\). <br>Substitute \\((x,y) = (1,2)\\): \\(2 - \\frac{a}{a+1} = \\frac{1-a}{(a+1)^2}\\). <br>Multiply by \\((a+1)^2\\): \\(2(a+1)^2 - a(a+1) = 1 - a \\implies a^2 + 4a + 1 = 0\\). <br>The discriminant \\(b^2-4ac = 16-4 = 12 > 0\\), yielding **2 distinct tangent lines**."
+            },
+            {
+                id: 9,
+                num: "#54",
+                prompt: "Find an equation of one, of two, tangent lines to the curve \\(y = \\frac{x-1}{x+1}\\) that are parallel to the line \\(x - 2y = 2\\).",
+                placeholder: "e.g., y = (1/5)x-5 --only give one",
+                accepted: [
+                    "y=(1/2)x-1",
+                    "y=(1/2)x+3",
+                    "(1/2)x-1",
+                    "(1/2)x+3"],
+                hint: "Determine the slope m of x - 2y = 2. Set y' equal to m to find x-coordinates of tangency, then write the line equations.",
+                solution: "Line equation \\(x - 2y = 2 \\implies y = \\frac{1}{2}x - 1\\), so slope \\(m = \\frac{1}{2}\\). <br>Derivative of curve: \\(y' = \\frac{(x+1)(1) - (x-1)(1)}{(x+1)^2} = \\frac{2}{(x+1)^2}\\). <br>Set equal to slope: \\(\\frac{2}{(x+1)^2} = \\frac{1}{2} \\implies (x+1)^2 = 4 \\implies x+1 = \\pm 2\\). <br>Tangency points: \\(x = 1 \\implies y = 0\\), and \\(x = -3 \\implies y = 2\\). <br>Tangent lines: \\(y - 0 = \\frac{1}{2}(x - 1) \\implies y = \\frac{1}{2}x - 1\\) and \\(y - 2 = \\frac{1}{2}(x + 3) \\implies y = \\frac{1}{2}x + 3\\)."
+            },
+            {
+                id: 10,
+                num: "#55",
+                prompt: "Find \\(R'(0)\\) where \\(R(x) = \\frac{x - 3x^3 + 5x^5}{1 + 3x^3 + 6x^6 + 9x^9}\\).",
+                placeholder: "Enter integer...",
+                accepted: ["1"],
+                hint: "Let f(x) be the numerator and g(x) be the denominator. Evaluate f(0), f'(0), g(0), g'(0) first, then apply the Quotient Rule.",
+                solution: "Let \\(f(x) = x - 3x^3 + 5x^5\\) and \\(g(x) = 1 + 3x^3 + 6x^6 + 9x^9\\). <br>Evaluate at \\(x=0\\): \\(f(0) = 0\\), \\(f'(0) = 1\\), \\(g(0) = 1\\), \\(g'(0) = 0\\). <br>By Quotient Rule: \\(R'(0) = \\frac{g(0)f'(0) - f(0)g'(0)}{[g(0)]^2} = \\frac{(1)(1) - (0)(0)}{1^2} = 1\\)."
+            }
+        ];
+
+        // User State Tracker
+        const userState = questionsData.map(q => ({
+            id: q.id,
+            attempts: 0,
+            maxAttempts: 2,
+            solved: false,
+            score: 0
+        }));
+
+        // Render Questions in Clean White Cards
+        window.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('problems-container');
+
+            questionsData.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.id = `q-card-${q.id}`;
+                card.className = "bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4 transition-all hover:border-slate-300";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-extrabold font-mono border border-blue-100">
+                                Problem ${index + 1} (${q.num})
+                            </span>
+                        </div>
+                        <span id="q-status-${q.id}" class="text-xs font-bold text-slate-400 flex items-center gap-1">
+                            <i class="fa-regular fa-circle"></i> Attempt 0 / 2
+                        </span>
+                    </div>
+
+                    <p class="text-sm sm:text-base text-slate-800 leading-relaxed font-medium">${q.prompt}</p>
+
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input id="q-input-${q.id}" type="text" placeholder="${q.placeholder}" class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition-all font-mono">
+                        <button id="q-btn-${q.id}" onclick="submitAnswer(${q.id})" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check"></i> Submit
+                        </button>
+                    </div>
+
+                    <!-- Feedback Box -->
+                    <div id="q-feedback-${q.id}" class="hidden p-3.5 rounded-xl text-xs font-semibold"></div>
+
+                    <!-- Worked Solution Box -->
+                    <div id="q-solution-${q.id}" class="hidden bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-700 leading-relaxed space-y-2">
+                        <span class="font-bold text-blue-700 block border-b border-slate-200 pb-1 flex items-center gap-1.5"><i class="fa-solid fa-lightbulb text-amber-500"></i> Step-by-Step Worked Solution:</span>
+                        <div>${q.solution}</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        });
+
+        // Submit Individual Answer
+        function submitAnswer(qid) {
+            const state = userState.find(s => s.id === qid);
+            const q = questionsData.find(item => item.id === qid);
+            if (!state || !q || state.attempts >= state.maxAttempts || state.solved) return;
+
+            const inputEl = document.getElementById(`q-input-${qid}`);
+            const btnEl = document.getElementById(`q-btn-${qid}`);
+            const feedbackEl = document.getElementById(`q-feedback-${qid}`);
+            const statusEl = document.getElementById(`q-status-${qid}`);
+            const solutionEl = document.getElementById(`q-solution-${qid}`);
+
+            const val = inputEl.value.trim().toLowerCase().replace(/\s+/g, '');
+            state.attempts++;
+
+            const isCorrect = q.accepted.some(acc => acc.toLowerCase().replace(/\s+/g, '') === val);
+
+            feedbackEl.className = "p-3.5 rounded-xl text-xs font-semibold";
+
+            if (isCorrect) {
+                state.solved = true;
+                state.score = 1;
+                inputEl.disabled = true;
+                btnEl.disabled = true;
+                btnEl.className = "px-6 py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-xl cursor-not-allowed opacity-90";
+                
+                feedbackEl.classList.remove('hidden');
+                feedbackEl.classList.add('bg-emerald-50', 'text-emerald-800', 'border', 'border-emerald-200');
+                feedbackEl.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i> Correct! Excellent derivative calculation.`;
+                statusEl.className = "text-xs font-bold text-emerald-600 flex items-center gap-1";
+                statusEl.innerHTML = `<i class="fa-solid fa-check"></i> Solved (Attempt ${state.attempts}/2)`;
+
+                solutionEl.classList.remove('hidden');
+            } else {
+                if (state.attempts < state.maxAttempts) {
+                    feedbackEl.classList.remove('hidden');
+                    feedbackEl.classList.add('bg-amber-50', 'text-amber-800', 'border', 'border-amber-200');
+                    feedbackEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm"></i> Incorrect attempt 1. <strong class="text-amber-900">Hint:</strong> ${q.hint}`;
+                    statusEl.className = "text-xs font-bold text-amber-600 flex items-center gap-1";
+                    statusEl.innerHTML = `<i class="fa-solid fa-clock"></i> Attempt ${state.attempts} / 2`;
+                } else {
+                    inputEl.disabled = true;
+                    btnEl.disabled = true;
+                    btnEl.className = "px-6 py-2.5 bg-slate-200 text-slate-500 font-bold text-xs rounded-xl cursor-not-allowed";
+
+                    feedbackEl.classList.remove('hidden');
+                    feedbackEl.classList.add('bg-rose-50', 'text-rose-800', 'border', 'border-rose-200');
+                    feedbackEl.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-600 text-sm"></i> Maximum attempts reached. Review the solution steps below.`;
+                    statusEl.className = "text-xs font-bold text-rose-600 flex items-center gap-1";
+                    statusEl.innerHTML = `<i class="fa-solid fa-lock"></i> Locked (2/2 Attempts)`;
+
+                    solutionEl.classList.remove('hidden');
+                }
+            }
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+
+            updateProgress();
+        }
+
+        // Update Header Score Progress
+        function updateProgress() {
+            const totalScore = userState.reduce((acc, curr) => acc + curr.score, 0);
+            const totalSubmitted = userState.filter(s => s.solved || s.attempts >= s.maxAttempts).length;
+            const progressPercent = Math.round((totalSubmitted / 10) * 100);
+
+            document.getElementById('header-score').textContent = `${totalScore} / 10`;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+            document.getElementById('progress-text').textContent = `${progressPercent}% Completed`;
+        }
+
+        // Check Completion & Launch Pop-up Modal with Detailed Token
+        function checkCompletionAndModal() {
+            const firstName = document.getElementById('student-first-name').value.trim();
+            const lastName = document.getElementById('student-last-name').value.trim();
+
+            if (!firstName || !lastName) {
+                alert("Please enter your First Name and Last Name at the top of the page before generating your grade token.");
+                document.getElementById('student-first-name').focus();
+                return;
+            }
+
+            const fullName = `${firstName} ${lastName}`;
+            const totalScore = userState.reduce((acc, curr) => acc + curr.score, 0);
+            const dateStr = new Date().toISOString().split('T')[0];
+
+            const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+            const secs = String(secondsElapsed % 60).padStart(2, '0');
+            const timeStr = `${mins}:${secs}`;
+
+            // Build detailed per-question attempt breakdown string
+            const attemptsBreakdown = userState.map(s => `Q${s.id}:${s.attempts}att`).join('|');
+
+            document.getElementById('modal-student-name').textContent = fullName;
+            document.getElementById('modal-final-score').textContent = `${totalScore} / 10`;
+            document.getElementById('modal-time-elapsed').textContent = timeStr;
+            document.getElementById('modal-date').textContent = dateStr;
+
+            // Generate Verification Checksum Hash
+            const rawString = `${fullName}-${totalScore}-${timeStr}-${attemptsBreakdown}-${dateStr}`;
+            let hashVal = 0;
+            for (let i = 0; i < rawString.length; i++) {
+                hashVal = (hashVal << 5) - hashVal + rawString.charCodeAt(i);
+                hashVal |= 0;
+            }
+            const hexHash = Math.abs(hashVal).toString(16).toUpperCase().padStart(8, '0');
+
+            const token = `SWICK-CALC-STUDENT[${fullName}]-SCORE[${totalScore}/10]-TIME[${timeStr}]-ATTEMPTS[${attemptsBreakdown}]-DATE[${dateStr}]-HASH[${hexHash}]`;
+
+            document.getElementById('grade-token-input').value = token;
+            document.getElementById('completion-modal').classList.remove('hidden');
+
+            triggerLaserShow();
+        }
+
+        function closeModal() {
+            document.getElementById('completion-modal').classList.add('hidden');
+        }
+
+        function copyToken() {
+            const tokenInput = document.getElementById('grade-token-input');
+            tokenInput.select();
+            document.execCommand('copy');
+
+            const status = document.getElementById('copy-status');
+            status.classList.remove('hidden');
+            setTimeout(() => status.classList.add('hidden'), 3500);
+        }
+
+        // Web Audio & Laser Show Synthesizer Engine
+        const canvas = document.getElementById('laser-canvas');
+        const ctx = canvas.getContext('2d');
+        let animId = null;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let audioCtx = null;
+        function playLaserSound() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(1600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(70, audioCtx.currentTime + 0.12);
+
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.12);
+        }
+
+        function triggerLaserShow() {
+            if (animId) {
+                cancelAnimationFrame(animId);
+                animId = null;
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const colors = ['#00ffcc', '#ff00ff', '#3399ff', '#ff3366', '#ffff00', '#a855f7'];
+            let count = 0;
+
+            const interval = setInterval(() => {
+                playLaserSound();
+                if (count > 22) {
+                    clearInterval(interval);
+                    setTimeout(() => ctx.clearRect(0, 0, canvas.width, canvas.height), 500);
+                    return;
+                }
+
+                ctx.save();
+                ctx.strokeStyle = colors[Math.floor(Math.random() * colors.length)];
+                ctx.lineWidth = Math.random() * 8 + 3;
+                ctx.shadowColor = ctx.strokeStyle;
+                ctx.shadowBlur = 25;
+
+                ctx.beginPath();
+                if (Math.random() > 0.5) {
+                    ctx.moveTo(Math.random() * canvas.width, 0);
+                    ctx.lineTo(Math.random() * canvas.width, canvas.height);
+                } else {
+                    ctx.moveTo(0, Math.random() * canvas.height);
+                    ctx.lineTo(canvas.width, Math.random() * canvas.height);
+                }
+                ctx.stroke();
+                ctx.restore();
+
+                count++;
+            }, 90);
+        }
+    </script>
+</body>
+</html>
